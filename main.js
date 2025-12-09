@@ -1,64 +1,74 @@
+/* ========================================================
+   KB Park Main Script with MicroCMS
+   ======================================================== */
+
+// ★重要: MicroCMSを使わない場合はこのままでOKです（自動でダミー画像になります）
+const MICROCMS_SERVICE_ID = 'YOUR_SERVICE_ID'; 
+const MICROCMS_API_KEY    = 'YOUR_API_KEY';    
+const MICROCMS_API_NAME   = 'site_data';       
+
 document.addEventListener('DOMContentLoaded', () => {
-    initScrollReveal();
-    initMarquee();
-    initParallax();
+    // 1. ローディング終了処理
+    setTimeout(() => {
+        document.body.classList.add('loaded');
+        initScrollAnimations();
+    }, 1500); 
+
+    initMouseParallax();
     initNavbar();
+    fetchSiteData(); // CMSデータの取得（設定されていれば）
 });
 
-/* --- 1. スクロール時のふわっと表示 --- */
-function initScrollReveal() {
-    const reveals = document.querySelectorAll('.reveal-up');
-
-    const checkReveal = () => {
-        const triggerBottom = window.innerHeight * 0.85;
-        reveals.forEach(el => {
-            const elTop = el.getBoundingClientRect().top;
-            if (elTop < triggerBottom) {
-                el.classList.add('active');
+/* --- 1. スクロールアニメーション (Intersection Observer) --- */
+function initScrollAnimations() {
+    const targets = document.querySelectorAll('.js-scroll');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-active');
+                observer.unobserve(entry.target);
             }
         });
-    };
-    window.addEventListener('scroll', checkReveal);
-    checkReveal();
+    }, {
+        rootMargin: '0px 0px -100px 0px',
+        threshold: 0.1
+    });
+
+    targets.forEach(target => observer.observe(target));
 }
 
-/* --- 2. 文字列の無限ループ --- */
-function initMarquee() {
-    const marqueeContainer = document.querySelector('.marquee-content');
-    if (!marqueeContainer) return;
+/* --- 2. マウス連動パララックス --- */
+function initMouseParallax() {
+    const orbs = document.querySelectorAll('.bg-orb');
 
-    // 内容をコピーして追加し、途切れさせない
-    const clone = marqueeContainer.innerHTML;
-    marqueeContainer.innerHTML += clone; 
-    marqueeContainer.innerHTML += clone; 
-}
+    document.addEventListener('mousemove', (e) => {
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
 
-/* --- 3. 背景の視差効果 (パララックス) --- */
-function initParallax() {
-    const bg = document.querySelector('.parallax-bg');
-    if (!bg) return;
-
-    window.addEventListener('scroll', () => {
-        const scrolled = window.scrollY;
-        bg.style.transform = `translateY(${scrolled * 0.5}px)`;
+        orbs.forEach((orb, index) => {
+            const speed = (index + 1) * 20; 
+            const moveX = (x - 0.5) * speed;
+            const moveY = (y - 0.5) * speed;
+            orb.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
+        });
     });
 }
 
-/* --- 4. ナビゲーションの見た目変更 --- */
+/* --- 3. ナビゲーション制御 --- */
 function initNavbar() {
     const nav = document.getElementById('navbar');
     
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
-            nav.classList.add('shadow-lg', 'py-2');
-            nav.classList.remove('py-4');
+            nav.classList.add('py-2', 'shadow-xl');
+            nav.classList.remove('py-3');
         } else {
-            nav.classList.remove('shadow-lg', 'py-2');
-            nav.classList.add('py-4');
+            nav.classList.remove('py-2', 'shadow-xl');
+            nav.classList.add('py-3');
         }
     });
 
-    // スムーススクロール
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -70,4 +80,26 @@ function initNavbar() {
             }
         });
     });
+}
+
+/* --- 4. MicroCMS データ取得 (設定済みの場合のみ動作) --- */
+async function fetchSiteData() {
+    if (MICROCMS_SERVICE_ID === 'YOUR_SERVICE_ID') return;
+
+    try {
+        const url = `https://${MICROCMS_SERVICE_ID}.microcms.io/api/v1/${MICROCMS_API_NAME}`;
+        const response = await fetch(url, {
+            headers: { 'X-MICROCMS-API-KEY': MICROCMS_API_KEY }
+        });
+        if (!response.ok) throw new Error('Failed');
+        const data = await response.json();
+
+        if (data.hero_image?.url) document.getElementById('hero-image').src = data.hero_image.url;
+        if (data.wall_run_image?.url) document.getElementById('wall-run-image').src = data.wall_run_image.url;
+        if (data.dunk_image?.url) document.getElementById('dunk-image').src = data.dunk_image.url;
+        if (data.kids_image?.url) document.getElementById('kids-image').src = data.kids_image.url; // ID追加済み
+
+    } catch (error) {
+        console.log('CMS load skipped or failed');
+    }
 }

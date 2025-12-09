@@ -2,245 +2,119 @@
 
 /* === ベース設定 === */
 body {
-    background-color: #020617; /* 背景色をダークに変更してネオン感を強調 */
+    background-color: #FFFDF5;
+    color: #444;
+    font-family: 'Zen Maru Gothic', sans-serif;
     overflow-x: hidden;
-    position: relative; /* 背景要素のために必要 */
 }
 
-/* === 背景アニメーション要素 === */
+/* === ローディングアニメーション === */
+.loaded #loader {
+    transform: translateY(-100%);
+}
 
-/* 1. 強化された浮遊オブジェクト */
-.floating-shape {
+/* === 背景ボール（マウス連動） === */
+.bg-orb {
     position: absolute;
     border-radius: 50%;
-    z-index: -1; /* コンテンツの後ろ */
-    filter: blur(60px);
-    opacity: 0.4;
-    /* アニメーションを複数組み合わせて複雑な動きに */
-    animation: float-intense 8s infinite ease-in-out alternate, rotate-shape 20s linear infinite;
+    transition: transform 0.2s ease-out; /* JSで動かす際の滑らかさ */
 }
 
-/* 動きの定義：大きく移動し、形も変わる */
-@keyframes float-intense {
-    0% {
-        transform: translate(0, 0) scale(1);
-        border-radius: 50%;
-    }
-    33% {
-        transform: translate(100px, -50px) scale(1.2);
-        border-radius: 40% 60% 50% 50% / 50% 40% 60% 50%;
-    }
-    66% {
-        transform: translate(-50px, 100px) scale(0.8);
-        border-radius: 60% 40% 50% 50% / 40% 60% 50% 50%;
-    }
-    100% {
-        transform: translate(50px, 50px) scale(1.1);
-        border-radius: 50%;
-    }
+/* === アニメーション定義 === */
+@keyframes elasticPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    70% { transform: scale(0.95); }
+    100% { transform: scale(1); opacity: 1; }
 }
-/* 回転アニメーション */
-@keyframes rotate-shape {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes slideLeft {
+    0% { transform: translateX(-100px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
 }
-
-
-/* 2. 新追加：走査線（スキャンライン）アニメーション */
-.scanlines {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2; /* 浮遊オブジェクトより後ろ */
-    background: linear-gradient(
-        to bottom,
-        transparent 50%,
-        rgba(204, 255, 0, 0.05) 51%, /* ライム色の極細線 */
-        transparent 51%
-    );
-    background-size: 100% 4px; /* 線の間隔 */
-    animation: scanline-move 0.5s linear infinite; /* 高速に動かす */
-    pointer-events: none; /* クリックを邪魔しない */
+@keyframes slideRight {
+    0% { transform: translateX(100px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeUp {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes blob {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0, 0) scale(1); }
 }
 
-@keyframes scanline-move {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 4px; }
+/* === JS連動用クラス === */
+.js-scroll {
+    opacity: 0; /* 初期状態は見えない */
 }
+.js-scroll.is-active.elastic-pop { animation: elasticPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+.js-scroll.is-active.slide-left { animation: slideLeft 0.8s ease-out forwards; }
+.js-scroll.is-active.slide-right { animation: slideRight 0.8s ease-out forwards; }
+.js-scroll.is-active.fade-up { animation: fadeUp 0.8s ease-out forwards; }
 
-/* 3. 新追加：背景のゆらぎ（ノイズ） */
-.bg-noise {
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    z-index: -3; /* 一番後ろ */
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJhIj48ZmVDdXJYdWxlbmNlIGJhc2VGcmVxdWVuY3k9IjAuMDUiIG51bW9jdGF2ZXM9IjIiIHJlc3VWx0PSJiIi8+PGZlRGlzcGxhY2VtZW50TWFwIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9ImIiIHNjYWxlPSIyMCIgeENoYW5uZWxTZWxlY3Rvcj0iUiIgeUNoYW5uZWxTZWxlY3Rvcj0iRyIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==');
-    opacity: 0.1;
-    animation: noise-shift 2s steps(10) infinite;
-}
-@keyframes noise-shift {
-    0% { transform: translate(0, 0); }
-    10% { transform: translate(-10px, 10px); }
-    20% { transform: translate(10px, -5px); }
-    30% { transform: translate(-15px, 5px); }
-    40% { transform: translate(5px, -15px); }
-    50% { transform: translate(-5px, 10px); }
-    60% { transform: translate(15px, -5px); }
-    70% { transform: translate(-10px, 15px); }
-    80% { transform: translate(10px, -10px); }
-    90% { transform: translate(-5px, 5px); }
-    100% { transform: translate(0, 0); }
-}
-
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
 
 /* === コンポーネント === */
+.text-stroke-orange { -webkit-text-stroke: 4px #FF8C00; color: transparent; }
+.text-stroke-white { -webkit-text-stroke: 4px white; color: #FF8C00; paint-order: stroke fill; }
 
-/* メインボタン */
 .btn-primary {
-    background-color: #CCFF00;
-    color: #0f172a;
-    padding: 1rem 2.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
+    background: linear-gradient(45deg, #FF8C00, #FFD700);
+    color: white;
+    padding: 0.5rem 1.5rem;
     border-radius: 9999px;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); /* 影を少し強く */
-    display: inline-block;
-    position: relative;
-    overflow: hidden;
-}
-/* ボタンのキラッと光るエフェクト追加 */
-.btn-primary::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
-    transform: rotate(45deg) translate(-100%, -100%);
-    transition: all 0.5s ease;
-}
-.btn-primary:hover::after {
-    transform: rotate(45deg) translate(100%, 100%);
-}
-
-.btn-primary:hover {
-    background-color: #ffffff;
-    transform: scale(1.1) skewX(-6deg);
-    cursor: pointer;
-    box-shadow: 0 0 20px #CCFF00; /* 発光表現 */
-}
-
-/* サブボタン */
-.btn-secondary {
-    border: 2px solid #ffffff;
-    color: #ffffff;
-    padding: 1rem 2.5rem;
-    font-size: 1.25rem;
     font-weight: 700;
-    border-radius: 9999px;
-    transition: all 0.3s ease;
-    display: inline-block;
-}
-.btn-secondary:hover {
-    background-color: #ffffff;
-    color: #0f172a;
-    transform: scale(1.05) skewX(-6deg);
-    cursor: pointer;
-}
-
-/* アクティビティカード */
-.activity-card {
-    background-color: #0f172a; /* 少し明るく */
-    border-radius: 1rem;
+    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
     overflow: hidden;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-}
-.activity-card .img-wrapper {
-    height: 16rem;
-    overflow: hidden;
-}
-.activity-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-.activity-card:hover .img-wrapper img {
-    transform: scale(1.1) rotate(2deg);
-}
-
-/* テキスト装飾 */
-.text-outline-white {
-    -webkit-text-stroke: 2px #ffffff;
-    color: transparent;
-}
-.marker-lime {
-    background: linear-gradient(transparent 60%, rgba(204, 255, 0, 0.6) 60%); /* 少し濃く */
-    padding: 0 4px;
-}
-.marker-purple {
-    background: linear-gradient(transparent 60%, rgba(139, 92, 246, 0.5) 60%); /* 少し濃く */
-    padding: 0 4px;
-}
-
-/* === アニメーション・エフェクト === */
-
-/* 斜めセクション */
-.skew-section {
     position: relative;
-    transform: skewY(-3deg);
-    margin-top: -4rem;
-    padding-top: 8rem;
-    padding-bottom: 8rem;
+    transition: transform 0.2s;
 }
-.skew-section::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: inherit;
-    z-index: -1;
-}
-.unskew-content {
-    transform: skewY(3deg);
-}
+.btn-primary:hover { transform: scale(1.05); }
 
-/* Marquee (流れる文字) */
-.marquee-container {
-    overflow: hidden;
-    white-space: nowrap;
-    background-color: #CCFF00; /* 背景色を指定 */
-}
-.marquee-content {
-    display: inline-block;
-    animation: marquee 10s linear infinite; /* 速度を倍に */
-}
-.marquee-item {
-    font-family: 'Archivo Black', sans-serif;
-    font-size: 2.25rem;
+.btn-giant {
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
     font-weight: 900;
-    margin: 0 1rem;
+    border-radius: 9999px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+    transition: all 0.2s;
+    border: 4px solid white;
 }
-@keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-}
+.btn-giant:hover { transform: translateY(-4px); box-shadow: 0 12px 0 rgba(0,0,0,0.1); }
+.btn-giant:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.1); }
 
-/* スクロール出現アニメーション */
-.reveal-up {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+/* エリアカード */
+.area-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    position: relative;
 }
-.reveal-up.active {
-    opacity: 1;
-    transform: translateY(0);
+.area-card:hover { transform: translateY(-10px) rotate(1deg); }
+.area-card .img-box { position: relative; overflow: hidden; height: 250px; }
+.area-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.area-card:hover img { transform: scale(1.1); }
+.badge { position: absolute; top: 10px; left: 10px; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+/* 波線セパレーター */
+.wave-separator { position: absolute; left: 0; width: 100%; overflow: hidden; line-height: 0; z-index: 5; }
+.wave-separator svg { display: block; width: calc(100% + 1.3px); height: 50px; }
+.wave-separator.bottom { bottom: 0; }
+.wave-separator.top { top: 0; transform: rotate(180deg); }
+.fill-pop-bg { fill: #FFFDF5; }
+
+/* Marquee */
+.marquee-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 20s linear infinite;
 }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+.animate-blob { animation: blob 5s infinite; }
