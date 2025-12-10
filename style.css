@@ -2,7 +2,7 @@
 
 /* === ベース設定 === */
 body {
-    background-color: #FFFDF5;
+    background-color: #F0FFF4; /* 薄い緑に変更 */
     color: #444;
     font-family: 'Zen Maru Gothic', sans-serif;
     overflow-x: hidden;
@@ -116,16 +116,16 @@ body {
 .animation-delay-2000 { animation-delay: 2s; }
 
 /* コンポーネント */
-.text-stroke-orange { -webkit-text-stroke: 4px #FF8C00; color: transparent; }
-.text-stroke-white { -webkit-text-stroke: 4px white; color: #FF8C00; paint-order: stroke fill; }
+.text-stroke-green { -webkit-text-stroke: 4px #32D74B; color: transparent; }
+.text-stroke-white { -webkit-text-stroke: 4px white; color: #32D74B; paint-order: stroke fill; }
 
 .btn-primary {
-    background: linear-gradient(45deg, #FF8C00, #FFD700);
+    background: linear-gradient(45deg, #32D74B, #FFD60A); /* 緑〜黄色のグラデ */
     color: white;
     padding: 0.5rem 1.5rem;
     border-radius: 9999px;
     font-weight: 700;
-    box-shadow: 0 4px 10px rgba(255, 140, 0, 0.3);
+    box-shadow: 0 4px 10px rgba(50, 215, 75, 0.3);
     overflow: hidden;
     position: relative;
     transition: transform 0.2s;
@@ -149,7 +149,7 @@ body {
 .wave-separator svg { display: block; width: calc(100% + 1.3px); height: 50px; }
 .wave-separator.bottom { bottom: 0; }
 .wave-separator.top { top: 0; transform: rotate(180deg); }
-.fill-pop-bg { fill: #FFFDF5; }
+.fill-pop-bg { fill: #F0FFF4; } /* 薄い緑 */
 
 /* Marquee */
 .marquee-text {
