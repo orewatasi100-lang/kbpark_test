@@ -1,28 +1,18 @@
-/* ========================================================
-   KB Park Main Script with MicroCMS
-   ======================================================== */
-
-// ★重要: MicroCMSを使わない場合はこのままでOKです（自動でダミー画像になります）
-const MICROCMS_SERVICE_ID = 'YOUR_SERVICE_ID'; 
-const MICROCMS_API_KEY    = 'YOUR_API_KEY';    
-const MICROCMS_API_NAME   = 'site_data';       
-
 document.addEventListener('DOMContentLoaded', () => {
     // 1. ローディング終了処理
     setTimeout(() => {
         document.body.classList.add('loaded');
         initScrollAnimations();
+        initDancingText(); // 追加: 文字アニメーション開始
     }, 1500); 
 
-    initMouseParallax();
+    initCustomCursor(); // 追加: マウスストーカー
     initNavbar();
-    fetchSiteData(); // CMSデータの取得（設定されていれば）
 });
 
-/* --- 1. スクロールアニメーション (Intersection Observer) --- */
+/* --- 1. スクロールアニメーション --- */
 function initScrollAnimations() {
     const targets = document.querySelectorAll('.js-scroll');
-    
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -30,35 +20,52 @@ function initScrollAnimations() {
                 observer.unobserve(entry.target);
             }
         });
-    }, {
-        rootMargin: '0px 0px -100px 0px',
-        threshold: 0.1
-    });
-
+    }, { rootMargin: '0px 0px -100px 0px', threshold: 0.1 });
     targets.forEach(target => observer.observe(target));
 }
 
-/* --- 2. マウス連動パララックス --- */
-function initMouseParallax() {
-    const orbs = document.querySelectorAll('.bg-orb');
-
-    document.addEventListener('mousemove', (e) => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-
-        orbs.forEach((orb, index) => {
-            const speed = (index + 1) * 20; 
-            const moveX = (x - 0.5) * speed;
-            const moveY = (y - 0.5) * speed;
-            orb.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
+/* --- 2. 踊る文字 (Dancing Text) の生成 --- */
+function initDancingText() {
+    const textElements = document.querySelectorAll('.dancing-text');
+    
+    textElements.forEach(el => {
+        const text = el.innerText;
+        el.innerHTML = ''; // 一旦空にする
+        
+        // 1文字ずつspanで囲む
+        [...text].forEach((char, index) => {
+            const span = document.createElement('span');
+            span.innerText = char === ' ' ? '\u00A0' : char; // 空白文字の処理
+            span.classList.add('dancing-char');
+            // ランダムにウェーブを開始させる
+            span.style.animationDelay = `${index * 0.1}s`;
+            span.classList.add('animate-wave');
+            el.appendChild(span);
         });
     });
 }
 
-/* --- 3. ナビゲーション制御 --- */
+/* --- 3. カスタムカーソル (星がついてくる) --- */
+function initCustomCursor() {
+    const cursor = document.getElementById('cursor-follower');
+    
+    document.addEventListener('mousemove', (e) => {
+        // 少し遅れてついてくる演出
+        setTimeout(() => {
+            cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        }, 50);
+    });
+
+    // ホバー時のエフェクト（ボタンに乗ったら大きくなる等）
+    document.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.querySelector('.cursor-star').style.transform = 'scale(2) rotate(180deg)');
+        el.addEventListener('mouseleave', () => cursor.querySelector('.cursor-star').style.transform = 'scale(1) rotate(0deg)');
+    });
+}
+
+/* --- 4. ナビゲーション制御 --- */
 function initNavbar() {
     const nav = document.getElementById('navbar');
-    
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
             nav.classList.add('py-2', 'shadow-xl');
@@ -80,26 +87,4 @@ function initNavbar() {
             }
         });
     });
-}
-
-/* --- 4. MicroCMS データ取得 (設定済みの場合のみ動作) --- */
-async function fetchSiteData() {
-    if (MICROCMS_SERVICE_ID === 'YOUR_SERVICE_ID') return;
-
-    try {
-        const url = `https://${MICROCMS_SERVICE_ID}.microcms.io/api/v1/${MICROCMS_API_NAME}`;
-        const response = await fetch(url, {
-            headers: { 'X-MICROCMS-API-KEY': MICROCMS_API_KEY }
-        });
-        if (!response.ok) throw new Error('Failed');
-        const data = await response.json();
-
-        if (data.hero_image?.url) document.getElementById('hero-image').src = data.hero_image.url;
-        if (data.wall_run_image?.url) document.getElementById('wall-run-image').src = data.wall_run_image.url;
-        if (data.dunk_image?.url) document.getElementById('dunk-image').src = data.dunk_image.url;
-        if (data.kids_image?.url) document.getElementById('kids-image').src = data.kids_image.url; // ID追加済み
-
-    } catch (error) {
-        console.log('CMS load skipped or failed');
-    }
 }
